@@ -1,2 +1,56 @@
-# desuai-tag-formatter
+# Desu.ai Tag Formatter
 Automatically format tags for use with desu.ai
+
+Supports URL, file and unformatted tag inputs.
+
+Usage: desuai_formatter.py <input>
+
+## Examples
+
+### URL
+#### Command
+```
+python desuai_formatter.py https://danbooru.donmai.us/posts/6087730
+```
+#### Output
+```
+Detected as a URL: https://danbooru.donmai.us/posts/6087730
+Post ID: 6087730
+Formatted tags: 1boy, absurdres, arm behind back, chinese clothes, dress, fire, flower, glowing, hanfu, highres, hua cheng, long hair, looking at another, mumuda13531, red flower, red rose, rose, smoke, string, string of fate, tian guan ci fu, wedding dress, xie lian
+```
+
+### Unformatted tags
+#### Command
+```
+python desuai_formatter.py "1girl bangs belt_collar blue_bow blue_eyes blue_ribbon bow collar dress flower frilled_dress frills hair_flower hair_ornament happy_birthday horns long_hair long_sleeves looking_at_viewer magic pink_flower pink_ribbon ribbon sheep_horns smile solo white_dress white_hair white_headdress"
+```
+#### Output
+```
+Tags detected: 1girl bangs belt_collar blue_bow blue_eyes blue_ribbon bow collar dress flower frilled_dress frills hai...
+Formatted tags: 1girl, bangs, belt collar, blue bow, blue eyes, blue ribbon, bow, collar, dress, flower, frilled dress, frills, hair flower, hair ornament, happy birthday, horns, long hair, long sleeves, looking at viewer, magic, pink flower, pink ribbon, ribbon, sheep horns, smile, solo, white dress, white hair, white headdress
+```
+
+### 3 Nested files
+#### Command
+```
+python desuai_formatter.py C:\Users\admin\Documents\desuai_formatter_test\test_input.txt
+```
+#### Output
+```
+[BASE FILE] (test_input.txt) Detected as a URL: https://danbooru.donmai.us/posts/6087459
+[BASE FILE] (test_input.txt) Post ID: 6087459
+[BASE FILE] (test_input.txt) Nested file detected: C:\Users\admin\Documents\desuai_formatter_test\test_input_2.txt
+[NESTED FILE] (test_input_2.txt) Detected as a URL: https://danbooru.donmai.us/posts/6087739
+[NESTED FILE] (test_input_2.txt) Post ID: 6087739
+[NESTED FILE] (test_input_2.txt) Nested file detected: C:\Users\admin\Documents\desuai_formatter_test\test_input_3.txt
+[NESTED FILE] (test_input_3.txt) Tags detected: rokugou_daisuke touhou goutokuji_mike 1girl animal_ears barefoot bell blush cat_ears cat_tail closed_ey...
+[NESTED FILE] (test_input_3.txt) Formatted tags saved to: C:\Users\admin\Documents\desuai_formatter_test\test_input_3_formatted.txt
+[NESTED FILE] (test_input_2.txt) Formatted tags saved to: C:\Users\admin\Documents\desuai_formatter_test\test_input_2_formatted.txt
+[BASE FILE] (test_input.txt) Tags detected: reitou_mkn hololive nekomata_okayu onigirya_(nekomata_okayu) absurdres commentary_request highres 1girl...
+[BASE FILE] (test_input.txt) Formatted tags saved to: C:\Users\admin\Documents\desuai_formatter_test\test_input_formatted.txt
+```
+
+## Credits
+- Me
+- [@parabirb]() - Regex
+- [@LuqueDaniel]() - pybooru
