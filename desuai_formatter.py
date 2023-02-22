@@ -81,7 +81,10 @@ def file_format(nested_file = None, nested_folder = None):
                     logger.warning((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"No post ID found in URL: {line}")
             elif detection(line) == "File":
                 logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as nested file: {line.strip()}")
-                file_format(line.strip())
+                try:
+                    file_format(line.strip())
+                except FileNotFoundError:
+                    logger.error((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Could not find {line.strip()}")
             elif detection(line) == "Dir":
                 logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a directory: {line.strip()}")          
                 folder_format()
@@ -89,7 +92,8 @@ def file_format(nested_file = None, nested_folder = None):
                 logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as tags: {(line[:93] + '...')}") # Limit to 100 chars (excluding the ...)
                 tag = line.replace(" ", ", ").replace("_", " ")
                 f_out.write(tag+"\n")
-        logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + "Formatted tags saved to: " + output_file)
+        logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Formatted tags saved to: {output_file}")
+    
 
 def main():
     try:
@@ -100,7 +104,10 @@ def main():
 
     if detection(input) == "File":
         logger.info(f"Detected as a file: {input.strip()}")
-        file_format()
+        try:
+            file_format()
+        except FileNotFoundError:
+            logger.error(f"Could not find {input.strip()}")
     elif detection(input) == "Dir":
         logger.info(f"Detected as a directory: {input.strip()}")
         folder_format()
