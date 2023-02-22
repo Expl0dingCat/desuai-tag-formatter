@@ -46,14 +46,12 @@ def file_format(nested_file = None):
     with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
         for line in f_in:
             if detection(line) == "URL":
-                # These print statements are cancerous
                 print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a URL: {line.rstrip()}")
                 postidregex = r"/posts/(\d+)"
                 # Use regex to extract the post ID from the URL
                 match = re.search(postidregex, line)
                 if match:
                     post_id = match.group(1)
-                    print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Post ID: {post_id}")
                     post = client.post_show(post_id)
                     # Extract the tags from the post information
                     tags = post['tag_string']
@@ -63,10 +61,10 @@ def file_format(nested_file = None):
                 else:
                     print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"No post ID found in URL: {line}")
             elif detection(line) == "File":
-                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Nested file detected: {line.strip()}")
+                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as nested file: {line.strip()}")
                 file_format(line.strip())
             elif detection(line) == "Tags":
-                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Tags detected: {(line[:103] + '...')}") # Limit to 100 chars (excluding the ...)
+                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as tags: {(line[:93] + '...')}") # Limit to 100 chars (excluding the ...)
                 tag = line.replace(" ", ", ")
                 tag = tag.replace("_", " ")
                 f_out.write(tag+"\n")
@@ -80,9 +78,10 @@ def main():
         exit(1)
 
     if detection(input) == "File":
+        print(f"Detected as a file: {input.strip()}")
         file_format()
     elif detection(input) == "Tags":
-        print(f"Tags detected: {(input[:103] + '...')}")
+        print(f"Detected as tags: {(input[:93] + '...')}")
         tag = input.replace(" ", ", ")
         tag = tag.replace("_", " ")
         print("Formatted tags: " + tag)
