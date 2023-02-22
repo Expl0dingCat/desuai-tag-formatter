@@ -46,6 +46,7 @@ def file_format(nested_file = None):
     with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
         for line in f_in:
             if detection(line) == "URL":
+                # These print statements are cancerous
                 print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a URL: {line.rstrip()}")
                 postidregex = r"/posts/(\d+)"
                 # Use regex to extract the post ID from the URL
