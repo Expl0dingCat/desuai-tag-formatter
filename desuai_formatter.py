@@ -16,9 +16,21 @@ Nothing in here is remotely pythonic, please dont expect it to be.
 import sys
 import re
 import os
+import logging
 from pybooru import Danbooru
 
+# pybooru config
 client = Danbooru('danbooru')
+
+# logging config
+file_handler = logging.FileHandler('log.log', mode='a')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s', datefmt='%H:%M:%S'))
+logger = logging.getLogger('desuai_formatter')
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+
+logging.info("Started")
 
 def detection(input_str):
     # Regular expression to match a file or path
@@ -26,15 +38,21 @@ def detection(input_str):
     # Regular expression to match a URL
     url_regex = r'^https?://danbooru\.donmai\.us/posts/\d+.*$'
     # Check if the input matches either regular expression
-    if re.match(path_regex, input_str):
-        return "File"
-    elif re.match(url_regex, input_str):
+    if re.match(url_regex, input_str):
         return "URL"
+    elif re.match(path_regex, input_str):
+        return "File"
+    elif os.path.isdir(input_str):
+        return "Dir"
     else:
         return "Tags"
 
-def file_format(nested_file = None):
-    if nested_file == None:
+def folder_format():
+    # To be done
+    print("WORK ON THIS YOU MORON")
+
+def file_format(nested_file = None, nested_folder = None):
+    if nested_file is None:
         input_file = r"" + sys.argv[1]
         output_file = os.path.splitext(sys.argv[1])[0] + "_formatted.txt"
         nstd = False
@@ -44,9 +62,11 @@ def file_format(nested_file = None):
         nstd = True
 
     with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
+        # holy shit these log statements are cancer but I want to keep them as one line
         for line in f_in:
             if detection(line) == "URL":
-                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a URL: {line.rstrip()}")
+                # String concatenation is actually faster here than format string literals
+                logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a URL: {line.rstrip()}")
                 postidregex = r"/posts/(\d+)"
                 # Use regex to extract the post ID from the URL
                 match = re.search(postidregex, line)
@@ -55,20 +75,21 @@ def file_format(nested_file = None):
                     post = client.post_show(post_id)
                     # Extract the tags from the post information
                     tags = post['tag_string']
-                    tag = tags.replace(" ", ", ")
-                    tag = tag.replace("_", " ")
+                    tag = tags.replace(" ", ", ").replace("_", " ")
                     f_out.write(tag+"\n")
                 else:
-                    print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"No post ID found in URL: {line}")
+                    logger.warning((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"No post ID found in URL: {line}")
             elif detection(line) == "File":
-                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as nested file: {line.strip()}")
+                logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as nested file: {line.strip()}")
                 file_format(line.strip())
+            elif detection(line) == "Dir":
+                logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as a directory: {line.strip()}")          
+                folder_format()
             elif detection(line) == "Tags":
-                print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as tags: {(line[:93] + '...')}") # Limit to 100 chars (excluding the ...)
-                tag = line.replace(" ", ", ")
-                tag = tag.replace("_", " ")
+                logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + f"Detected as tags: {(line[:93] + '...')}") # Limit to 100 chars (excluding the ...)
+                tag = line.replace(" ", ", ").replace("_", " ")
                 f_out.write(tag+"\n")
-        print((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + "Formatted tags saved to: " + output_file)
+        logger.info((f"[NESTED FILE] ({os.path.basename(input_file)}) " if nstd else f"[BASE FILE] ({os.path.basename(input_file)}) ") + "Formatted tags saved to: " + output_file)
 
 def main():
     try:
@@ -78,28 +99,29 @@ def main():
         exit(1)
 
     if detection(input) == "File":
-        print(f"Detected as a file: {input.strip()}")
+        logger.info(f"Detected as a file: {input.strip()}")
         file_format()
+    elif detection(input) == "Dir":
+        logger.info(f"Detected as a directory: {input.strip()}")
+        folder_format()
     elif detection(input) == "Tags":
-        print(f"Detected as tags: {(input[:93] + '...')}")
-        tag = input.replace(" ", ", ")
-        tag = tag.replace("_", " ")
-        print("Formatted tags: " + tag)
+        logger.info(f"Detected as tags: {(input[:93] + '...')}")
+        tag = input.replace(" ", ", ").replace("_", " ")
+        logger.info("Formatted tags: " + tag)
     elif detection(input) == "URL":
-        print(f"Detected as a URL: {input.rstrip()}")
+        logger.info(f"Detected as a URL: {input.rstrip()}")
         postidregex = r"/posts/(\d+)"
         # Use regex to extract the post ID from the URL
         match = re.search(postidregex, input)
         if match:
             post_id = match.group(1)
-            print(f"Post ID: {post_id}")
+            logger.info(f"Post ID: {post_id}")
             post = client.post_show(post_id)
             # Extract the tags from the post information
             tags = post['tag_string']
-            tag = tags.replace(" ", ", ")
-            tag = tag.replace("_", " ")
-            print("Formatted tags: " + tag)
+            tag = tags.replace(" ", ", ").replace("_", " ")
+            logger.info("Formatted tags: " + tag)
         else:
-            print(f"No post ID found in URL: {input}")
+            logger.warning(f"No post ID found in URL: {input}")
 
 main()
