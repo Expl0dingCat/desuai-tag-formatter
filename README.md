@@ -56,5 +56,5 @@ python desuai_formatter.py C:\Users\admin\Documents\desuai_formatter_test\test_i
 
 ## Credits
 - Me
-- [@parabirb]() - Regex
-- [@LuqueDaniel]() - pybooru
+- [@parabirb](https://github.com/parabirb) - Regex
+- [@LuqueDaniel](https://github.com/LuqueDaniel) - pybooru
